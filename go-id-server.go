@@ -6,29 +6,29 @@ import (
 	"time"
 )
 
-type Id struct {
+type IdGenerator struct {
 	timer, counter int64
 	mutex          sync.Mutex
 }
 
-func (id *Id) Get() int64 {
-	if id.timer != time.Now().Unix() {
-		id.timer = time.Now().Unix()
-		id.counter = 0
+func (idg *IdGenerator) GenerateNewId() int64 {
+	if idg.timer != time.Now().Unix() {
+		idg.timer = time.Now().Unix()
+		idg.counter = 0
 	}
 
-	id.mutex.Lock()
-	id.counter++
-	newId := (id.timer << 32) + id.counter
-	id.mutex.Unlock()
+	idg.mutex.Lock()
+	idg.counter++
+	newId := (idg.timer << 32) + idg.counter
+	idg.mutex.Unlock()
 
 	return newId
 }
 
-var id Id
+var idG IdGenerator
 
 func main() {
-	id = Id{}
+	idG = IdGenerator{}
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
@@ -39,5 +39,5 @@ func main() {
 }
 
 func generateId(c *gin.Context) {
-	c.String(200, "%d\n", id.Get())
+	c.String(200, "%d\n", idG.GenerateNewId())
 }
